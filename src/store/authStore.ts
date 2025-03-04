@@ -28,13 +28,14 @@ export const useAuthStore = create<AuthState>()(
             
             const mockUser: User = {
               id: '1',
-              name: 'John Doe',
+              name: 'Admin',
               email: email,
               role: 'admin',
               companyId: '1',
               discountLimit: 10,
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              active: true,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             };
             
             const mockToken = 'mock-jwt-token';
@@ -58,6 +59,7 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           console.error('Login failed:', error);
+          set({ user: null, token: null, isAuthenticated: false });
           throw error;
         }
       },
@@ -78,6 +80,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      getStorage: () => localStorage,
     }
   )
 );

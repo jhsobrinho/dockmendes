@@ -1,14 +1,25 @@
 import express from 'express';
 import { verifyToken, isOperatorOrAdmin } from '../middleware/auth.middleware.js';
+import {
+  getAllClients,
+  getClientById,
+  createClient,
+  updateClient,
+  deleteClient,
+  toggleClientStatus
+} from '../controllers/client.controller.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(verifyToken);
 
-// Placeholder for client routes
-router.get('/', isOperatorOrAdmin, (req, res) => {
-  res.status(200).json({ message: 'Client routes will be implemented here' });
-});
+// Client routes
+router.get('/', isOperatorOrAdmin, getAllClients);
+router.get('/:id', isOperatorOrAdmin, getClientById);
+router.post('/', isOperatorOrAdmin, createClient);
+router.put('/:id', isOperatorOrAdmin, updateClient);
+router.delete('/:id', isOperatorOrAdmin, deleteClient);
+router.patch('/:id', isOperatorOrAdmin, toggleClientStatus);
 
-export default router;
+export { router as default };

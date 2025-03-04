@@ -97,12 +97,17 @@ const initializeDatabase = async () => {
     await sequelize.authenticate();
     console.log('Conexão com o banco de dados estabelecida com sucesso.');
 
-    // Sincroniza os modelos sem forçar recriação
-    await sequelize.sync({ alter: true });
-    console.log('Modelos sincronizados com sucesso.');
-    
-    // Cria o usuário admin se não existir
-    await createAdminUser();
+    // Sincroniza os modelos apenas se DB_SYNC=true
+    if (process.env.DB_SYNC === 'true') {
+      console.log('Iniciando sincronização do banco de dados...');
+      await sequelize.sync({ alter: true });
+      console.log('Modelos sincronizados com sucesso.');
+      
+      // Cria o usuário admin se não existir
+      await createAdminUser();
+    } else {
+      console.log('Sincronização do banco de dados desabilitada. Para habilitar, defina DB_SYNC=true no arquivo .env');
+    }
   } catch (error) {
     console.error('Erro ao inicializar o banco de dados:', error);
     throw error;

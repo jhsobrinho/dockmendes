@@ -5,6 +5,7 @@ import DockManagement from './pages/DockManagement';
 import { CompaniesPage } from './pages/companies/CompaniesPage';
 import UsersPage from './pages/users/UsersPage';
 import ProductsPage from './pages/products/ProductsPage';
+import ClientsPage from './pages/clients/ClientsPage';
 import { useAuthStore } from './store/authStore';
 
 function App() {
@@ -41,6 +42,8 @@ function App() {
         return <UsersPage />;
       case 'products':
         return <ProductsPage />;
+      case 'clients':
+        return <ClientsPage />;
       default:
         return <Dashboard />;
     }

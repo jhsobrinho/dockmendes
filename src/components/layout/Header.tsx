@@ -1,25 +1,18 @@
 import React from 'react';
-import { Bell, User, Menu } from 'lucide-react';
+import { Bell, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 interface HeaderProps {
-  onMenuClick: () => void;
   title: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, title }) => {
+const Header: React.FC<HeaderProps> = ({ title }) => {
   const { user } = useAuthStore();
   
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center px-4 justify-between">
       <div className="flex items-center">
-        <button 
-          onClick={onMenuClick}
-          className="p-2 rounded-md text-gray-500 hover:bg-gray-100 lg:hidden"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="text-xl font-semibold text-gray-800 ml-2 lg:ml-0">{title}</h1>
+        <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
       </div>
       
       <div className="flex items-center space-x-4">

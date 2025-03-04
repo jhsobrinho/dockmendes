@@ -145,17 +145,19 @@ export interface Client {
   id: string;
   name: string;
   document: string;
-  address: string;
-  phone: string;
-  email: string;
-  isLoyal: boolean; // Flag for loyal clients
-  quotas: number; // Available quotas in minutes (multiples of 10)
-  autoReserve: boolean; // Flag for automatic reservation
-  preferredDays: string[]; // Days of the week for automatic reservation
-  preferredTime: string; // Preferred time for reservation
-  companyId: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  isLoyal: boolean;
+  quotas: number;
+  autoReserve: boolean;
+  preferredDays: string[];
+  preferredTime?: string;
+  active: boolean;
+  companyId?: string;
   createdAt: Date;
   updatedAt: Date;
+  company?: Company;
 }
 
 // Order types
