@@ -1,0 +1,6 @@
+{
+  "readOnlyPaths": [
+    "frontend/.env",
+    "backend/.env"
+  ]
+}

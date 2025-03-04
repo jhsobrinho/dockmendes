@@ -6,23 +6,36 @@ import { CompaniesPage } from './pages/companies/CompaniesPage';
 import UsersPage from './pages/users/UsersPage';
 import ProductsPage from './pages/products/ProductsPage';
 import ClientsPage from './pages/clients/ClientsPage';
+import Orders from './pages/Orders';
 import { useAuthStore } from './store/authStore';
+
+interface NavigationEvent extends CustomEvent {
+  detail: {
+    page: string;
+    orderId?: string;
+  };
+}
 
 function App() {
   const [currentPage, setCurrentPage] = useState<string>('dashboard');
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const { isAuthenticated, user } = useAuthStore();
   
   useEffect(() => {
-    const handleNavigation = (e: CustomEvent) => {
-      if (e.detail && typeof e.detail.page === 'string') {
-        setCurrentPage(e.detail.page);
+    const handleNavigation = (e: Event) => {
+      const event = e as NavigationEvent;
+      if (event.detail) {
+        setCurrentPage(event.detail.page);
+        if (event.detail.orderId) {
+          setCurrentOrderId(event.detail.orderId);
+        }
       }
     };
     
-    window.addEventListener('navigate' as any, handleNavigation);
+    window.addEventListener('navigate', handleNavigation);
     
     return () => {
-      window.removeEventListener('navigate' as any, handleNavigation);
+      window.removeEventListener('navigate', handleNavigation);
     };
   }, []);
   
@@ -44,6 +57,12 @@ function App() {
         return <ProductsPage />;
       case 'clients':
         return <ClientsPage />;
+      case 'orders':
+        return <Orders />;
+      case 'new-order':
+        return <Orders mode="new" />;
+      case 'edit-order':
+        return <Orders mode="edit" orderId={currentOrderId} />;
       default:
         return <Dashboard />;
     }
