@@ -4,10 +4,47 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'operator' | 'client';
-  companyId: string;
+  companyId?: string;
   discountLimit: number;
+  active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  company?: Company;
+}
+
+export interface UserCreate {
+  name: string;
+  email: string;
+  password: string;
+  role?: 'admin' | 'operator' | 'client';
+  companyId?: string;
+  discountLimit?: number;
+  active?: boolean;
+}
+
+export interface UserUpdate {
+  name?: string;
+  email?: string;
+  role?: 'admin' | 'operator' | 'client';
+  companyId?: string;
+  discountLimit?: number;
+  active?: boolean;
+}
+
+export interface UserFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: 'admin' | 'operator' | 'client';
+  companyId?: string;
+  active?: boolean;
+}
+
+export interface UserPaginatedResponse {
+  users: User[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 // Company types
@@ -15,12 +52,43 @@ export interface Company {
   id: string;
   name: string;
   document: string;
-  address: string;
-  phone: string;
-  email: string;
+  address?: string;
+  phone?: string;
+  email?: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CompanyCreate {
+  name: string;
+  document: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface CompanyUpdate {
+  name?: string;
+  document?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  active?: boolean;
+}
+
+export interface CompanyFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  active?: boolean;
+}
+
+export interface CompanyPaginatedResponse {
+  companies: Company[];
+  total: number;
+  pages: number;
+  currentPage: number;
 }
 
 // Product types

@@ -52,15 +52,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} /> },
-    { id: 'companies', label: 'Companies', icon: <Building size={20} /> },
-    { id: 'users', label: 'Users', icon: <Users size={20} /> },
-    { id: 'products', label: 'Products', icon: <Package size={20} /> },
-    { id: 'clients', label: 'Clients', icon: <Users size={20} /> },
-    { id: 'orders', label: 'Orders', icon: <ShoppingCart size={20} /> },
-    { id: 'docks', label: 'Dock Management', icon: <Truck size={20} /> },
-    { id: 'reservations', label: 'Reservations', icon: <Clock size={20} /> },
-    { id: 'reports', label: 'Reports', icon: <BarChart2 size={20} /> },
-    { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+    { id: 'companies', label: 'Empresas', icon: <Building size={20} /> },
+    { id: 'users', label: 'Usuários', icon: <Users size={20} /> },
+    { id: 'products', label: 'Produtos', icon: <Package size={20} /> },
+    { id: 'clients', label: 'Clientes', icon: <Users size={20} /> },
+    { id: 'orders', label: 'Pedidos', icon: <ShoppingCart size={20} /> },
+    { id: 'docks', label: 'Gerenciar Docas', icon: <Truck size={20} /> },
+    { id: 'reservations', label: 'Reservas', icon: <Clock size={20} /> },
+    { id: 'reports', label: 'Relatórios', icon: <BarChart2 size={20} /> },
+    { id: 'settings', label: 'Configurações', icon: <Settings size={20} /> },
   ];
 
   const handleItemClick = (itemId: string) => {
@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-xl font-bold text-blue-600">DockFlow</h1>
-        <p className="text-sm text-gray-500">Dock Management System</p>
+        <p className="text-sm text-gray-500">Sistema de Gerenciamento de Docas</p>
       </div>
       
       <nav className="flex-1 p-4 overflow-y-auto">
@@ -101,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-t border-gray-200">
         <SidebarItem
           icon={<LogOut size={20} />}
-          label="Logout"
+          label="Sair"
           onClick={handleLogout}
         />
       </div>

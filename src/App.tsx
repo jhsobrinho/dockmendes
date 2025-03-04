@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DockManagement from './pages/DockManagement';
 import { CompaniesPage } from './pages/companies/CompaniesPage';
+import UsersPage from './pages/users/UsersPage';
 import { useAuthStore } from './store/authStore';
 
 function App() {
@@ -35,6 +36,8 @@ function App() {
         return <DockManagement />;
       case 'companies':
         return <CompaniesPage />;
+      case 'users':
+        return <UsersPage />;
       default:
         return <Dashboard />;
     }
