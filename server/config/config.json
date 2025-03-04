@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "master",
+    "password": "Senha@3$123",
+    "database": "dockstation",
+    "host": "app.voipsimples.com.br",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "master",
+    "password": "Senha@3$123",
+    "database": "dockstation_test",
+    "host": "app.voipsimples.com.br",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "master",
+    "password": "Senha@3$123",
+    "database": "dockstation",
+    "host": "app.voipsimples.com.br",
+    "port": 5432,
+    "dialect": "postgres"
+  }
+}

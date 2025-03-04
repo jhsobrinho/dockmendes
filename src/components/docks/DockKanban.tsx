@@ -1,124 +1,178 @@
-import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { Truck, Calendar, Clock, Package } from 'lucide-react';
-import { Order, Dock } from '../../types';
-
-// This is a simplified version - in a real app, you'd use a proper drag-and-drop library
-// like react-beautiful-dnd, but for this example we'll create a visual representation
-
-interface DockScheduleItem {
-  id: string;
-  orderId: string;
-  clientName: string;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-}
-
-interface DockColumnProps {
-  dock: Dock;
-  scheduleItems: DockScheduleItem[];
-  date: Date;
-}
-
-const DockColumn: React.FC<DockColumnProps> = ({ dock, scheduleItems, date }) => {
-  const formattedDate = new Intl.DateTimeFormat('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  }).format(date);
-
-  return (
-    <div className="flex-1 min-w-[300px] bg-gray-50 rounded-lg p-4 border border-gray-200">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="font-semibold text-gray-800">{dock.name}</h3>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            <Calendar size={14} className="mr-1" />
-            <span>{formattedDate}</span>
-          </div>
-        </div>
-        <div className={`px-2 py-1 rounded text-xs font-medium ${dock.isBlocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-          {dock.isBlocked ? 'Blocked' : 'Available'}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {scheduleItems.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <Truck size={24} className="mx-auto mb-2" />
-            <p>No scheduled trucks</p>
-          </div>
-        ) : (
-          scheduleItems.map((item) => (
-            <div 
-              key={item.id}
-              className={`bg-white p-3 rounded-md shadow-sm border-l-4 ${
-                item.status === 'in_progress' 
-                  ? 'border-blue-500' 
-                  : item.status === 'completed'
-                  ? 'border-green-500'
-                  : item.status === 'cancelled'
-                  ? 'border-red-500'
-                  : 'border-yellow-500'
-              }`}
-            >
-              <div className="flex justify-between items-start">
-                <h4 className="font-medium text-gray-800">{item.clientName}</h4>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  item.status === 'in_progress' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : item.status === 'completed'
-                    ? 'bg-green-100 text-green-800'
-                    : item.status === 'cancelled'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {item.status.replace('_', ' ')}
-                </span>
-              </div>
-              
-              <div className="mt-2 text-sm text-gray-600">
-                <div className="flex items-center">
-                  <Clock size={14} className="mr-1" />
-                  <span>{item.startTime} - {item.endTime}</span>
-                </div>
-                <div className="flex items-center mt-1">
-                  <Package size={14} className="mr-1" />
-                  <span>{item.duration} min</span>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-};
+import React, { useEffect } from 'react';
+import { useDockStore } from '../../store/dockStore';
+import { Dock, DockSchedule } from '../../types';
+import { AlertTriangle, Plus } from 'lucide-react';
+import Button from '../ui/Button';
 
 interface DockKanbanProps {
   docks: Dock[];
-  scheduleItems: Record<string, DockScheduleItem[]>;
   selectedDate: Date;
+  onNewSchedule: (dockId: string) => void;
+  onEditSchedule: (dockId: string, scheduleId: string) => void;
 }
 
-const DockKanban: React.FC<DockKanbanProps> = ({ 
-  docks, 
-  scheduleItems,
-  selectedDate
+const DockKanban: React.FC<DockKanbanProps> = ({
+  docks,
+  selectedDate,
+  onNewSchedule,
+  onEditSchedule
 }) => {
+  const { 
+    schedules,
+    loading,
+    error,
+    fetchSchedules
+  } = useDockStore();
+
+  useEffect(() => {
+    docks.forEach(dock => {
+      fetchSchedules(dock.id);
+    });
+  }, [docks, selectedDate]);
+
+  const getSchedulesByDock = (dockId: string) => {
+    return schedules.filter(schedule => schedule.dockId === dockId);
+  };
+
+  const getSchedulePosition = (schedule: DockSchedule) => {
+    const startHour = new Date(schedule.startTime).getHours();
+    const startMinutes = new Date(schedule.startTime).getMinutes();
+    const position = ((startHour * 60 + startMinutes) / (24 * 60)) * 100;
+    const duration = schedule.duration;
+    const height = (duration / (24 * 60)) * 100;
+    
+    return {
+      top: `${position}%`,
+      height: `${height}%`
+    };
+  };
+
+  const getStatusColor = (status: DockSchedule['status']) => {
+    switch (status) {
+      case 'scheduled':
+        return 'bg-blue-100 border-blue-300 text-blue-800';
+      case 'in_progress':
+        return 'bg-yellow-100 border-yellow-300 text-yellow-800';
+      case 'completed':
+        return 'bg-green-100 border-green-300 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 border-red-300 text-red-800';
+      default:
+        return 'bg-gray-100 border-gray-300 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: DockSchedule['status']) => {
+    switch (status) {
+      case 'scheduled':
+        return 'Agendado';
+      case 'in_progress':
+        return 'Em Andamento';
+      case 'completed':
+        return 'Concluído';
+      case 'cancelled':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  };
+
+  if (loading && !docks.length) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto pb-4">
-      <div className="flex space-x-4 min-w-max">
-        {docks.map((dock) => (
-          <DockColumn 
-            key={dock.id}
-            dock={dock}
-            scheduleItems={scheduleItems[dock.id] || []}
-            date={selectedDate}
-          />
-        ))}
+    <div className="overflow-x-auto">
+      <div className="min-w-[800px]">
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-[100px_repeat(auto-fill,minmax(200px,1fr))] gap-4">
+          {/* Horários */}
+          <div className="relative">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-full text-xs text-gray-500"
+                style={{ top: `${(i / 24) * 100}%` }}
+              >
+                {`${i.toString().padStart(2, '0')}:00`}
+              </div>
+            ))}
+          </div>
+
+          {/* Docas */}
+          {docks.map((dock) => (
+            <div
+              key={dock.id}
+              className="relative bg-white rounded-lg shadow p-4 h-[1200px]"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <h3 className="font-medium text-gray-900">
+                    {dock.name}
+                  </h3>
+                  {dock.isBlocked && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                      <AlertTriangle size={12} className="mr-1" />
+                      Bloqueada
+                    </span>
+                  )}
+                </div>
+                {!dock.isBlocked && (
+                  <Button
+                    onClick={() => onNewSchedule(dock.id)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Plus size={16} />
+                  </Button>
+                )}
+              </div>
+
+              {/* Grid de horas */}
+              <div className="absolute inset-x-4 top-16 bottom-4">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-full border-t border-gray-100"
+                    style={{ top: `${(i / 24) * 100}%` }}
+                  />
+                ))}
+
+                {/* Agendamentos */}
+                {getSchedulesByDock(dock.id).map((schedule) => {
+                  const { top, height } = getSchedulePosition(schedule);
+                  return (
+                    <div
+                      key={schedule.id}
+                      className={`absolute left-0 right-0 p-2 border rounded-md cursor-pointer transition-transform hover:scale-[1.02] ${getStatusColor(schedule.status)}`}
+                      style={{ top, height }}
+                      onClick={() => onEditSchedule(dock.id, schedule.id)}
+                    >
+                      <div className="text-xs font-medium">
+                        {schedule.order.clientName}
+                      </div>
+                      <div className="text-xs">
+                        {new Date(schedule.startTime).toLocaleTimeString()} - {new Date(schedule.endTime).toLocaleTimeString()}
+                      </div>
+                      <div className="text-xs mt-1">
+                        {getStatusText(schedule.status)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

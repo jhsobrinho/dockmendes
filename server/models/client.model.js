@@ -28,6 +28,21 @@ export default (sequelize, DataTypes) => {
         isEmail: true
       }
     },
+    transportCompany: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Nome da transportadora'
+    },
+    driverName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Nome do motorista'
+    },
+    vehiclePlate: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Placa do veículo'
+    },
     isLoyal: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

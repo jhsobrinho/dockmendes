@@ -194,8 +194,8 @@ export interface Dock {
   name: string;
   companyId: string;
   workingHours: {
-    start: string; // Format: "HH:MM"
-    end: string; // Format: "HH:MM"
+    start: string; // formato HH:mm
+    end: string; // formato HH:mm
   };
   isBlocked: boolean;
   blockReason?: string;
@@ -203,15 +203,17 @@ export interface Dock {
   updatedAt: Date;
 }
 
-// Dock Scheduling
 export interface DockSchedule {
   id: string;
   dockId: string;
-  dock: Dock;
   orderId: string;
-  order: Order;
-  startTime: Date;
-  endTime: Date;
+  order: {
+    id: string;
+    clientName: string;
+  };
+  startTime: string; // formato ISO
+  endTime: string; // formato ISO
+  duration: number; // em minutos
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;

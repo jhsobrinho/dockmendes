@@ -6,7 +6,8 @@ import {
   updateDock, 
   deleteDock,
   getDockSchedule,
-  checkDockAvailability
+  checkDockAvailability,
+  createDockSchedule
 } from '../controllers/dock.controller.js';
 import { verifyToken, isOperatorOrAdmin, isSameCompany } from '../middleware/auth.middleware.js';
 
@@ -25,5 +26,6 @@ router.delete('/:id', isOperatorOrAdmin, isSameCompany, deleteDock);
 // Dock schedule routes
 router.get('/:id/schedule', isOperatorOrAdmin, isSameCompany, getDockSchedule);
 router.get('/:id/availability', isOperatorOrAdmin, isSameCompany, checkDockAvailability);
+router.post('/:id/schedule', isOperatorOrAdmin, isSameCompany, createDockSchedule);
 
 export default router;

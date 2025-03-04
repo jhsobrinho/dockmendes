@@ -270,6 +270,14 @@ const checkDockAvailability = async (req, res) => {
     const { id } = req.params;
     const { date, startTime, endTime, duration } = req.query;
     
+    process.stdout.write('\n=== Início da Verificação de Disponibilidade ===\n');
+    process.stdout.write(`ID da Doca: ${id}\n`);
+    process.stdout.write(`Data: ${date}\n`);
+    process.stdout.write(`Horário Início: ${startTime}\n`);
+    process.stdout.write(`Horário Fim: ${endTime}\n`);
+    process.stdout.write(`Duração: ${duration}\n`);
+    process.stdout.write('\n');
+    
     if (!date) {
       return res.status(400).json({ message: 'Date is required' });
     }
@@ -279,6 +287,12 @@ const checkDockAvailability = async (req, res) => {
     if (!dock) {
       return res.status(404).json({ message: 'Dock not found' });
     }
+
+    process.stdout.write('=== Dados da Doca ===\n');
+    process.stdout.write(`Nome: ${dock.name}\n`);
+    process.stdout.write(`Horário de Funcionamento: ${dock.workingHoursStart} - ${dock.workingHoursEnd}\n`);
+    process.stdout.write(`Bloqueada: ${dock.isBlocked}\n`);
+    process.stdout.write('\n');
     
     // Check if user has permission to view this dock's availability
     if (req.user.role !== 'admin' && dock.companyId !== req.user.companyId) {
@@ -310,26 +324,49 @@ const checkDockAvailability = async (req, res) => {
     
     // If startTime and endTime are provided, check if the slot is available
     if (startTime && endTime) {
-      const selectedDate = new Date(date);
-      const startDateTime = new Date(selectedDate);
-      const [startHours, startMinutes] = startTime.split(':');
-      startDateTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10), 0, 0);
+      process.stdout.write('=== Processamento dos Horários ===\n');
+      process.stdout.write('String dos horários recebidos:\n');
+      process.stdout.write(`startTime: ${startTime}\n`);
+      process.stdout.write(`endTime: ${endTime}\n\n`);
+
+      // Extrair apenas as horas e minutos dos horários recebidos
+      const [startHours, startMinutes] = startTime.split('T')[1].split(':');
+      const [endHours, endMinutes] = endTime.split('T')[1].split(':');
       
-      const endDateTime = new Date(selectedDate);
-      const [endHours, endMinutes] = endTime.split(':');
-      endDateTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0, 0);
+      process.stdout.write('Horários extraídos (após split):\n');
+      process.stdout.write(`Início: ${startHours}:${startMinutes}\n`);
+      process.stdout.write(`Fim: ${endHours}:${endMinutes}\n\n`);
       
       // Check if the requested time is within working hours
       const [dockStartHours, dockStartMinutes] = dock.workingHoursStart.split(':');
       const [dockEndHours, dockEndMinutes] = dock.workingHoursEnd.split(':');
       
-      const dockStartTime = new Date(selectedDate);
-      dockStartTime.setHours(parseInt(dockStartHours, 10), parseInt(dockStartMinutes, 10), 0, 0);
+      process.stdout.write('Horário de funcionamento da doca (após split):\n');
+      process.stdout.write(`Início: ${dockStartHours}:${dockStartMinutes}\n`);
+      process.stdout.write(`Fim: ${endHours}:${endMinutes}\n\n`);
       
-      const dockEndTime = new Date(selectedDate);
-      dockEndTime.setHours(parseInt(dockEndHours, 10), parseInt(dockEndMinutes, 10), 0, 0);
+      process.stdout.write('Valores numéricos para comparação:\n');
+      process.stdout.write(`Horário solicitado - Início: ${parseInt(startHours)}:${parseInt(startMinutes)}\n`);
+      process.stdout.write(`Horário solicitado - Fim: ${parseInt(endHours)}:${parseInt(endMinutes)}\n`);
+      process.stdout.write(`Horário da doca - Início: ${parseInt(dockStartHours)}:${parseInt(dockStartMinutes)}\n`);
+      process.stdout.write(`Fim: ${endHours}:${endMinutes}\n\n`);
       
-      if (startDateTime < dockStartTime || endDateTime > dockEndTime) {
+      // Compare only hours and minutes
+      const isBeforeStart = parseInt(startHours) < parseInt(dockStartHours) || 
+                          (parseInt(startHours) === parseInt(dockStartHours) && 
+                           parseInt(startMinutes) < parseInt(dockStartMinutes));
+                           
+      const isAfterEnd = parseInt(endHours) > parseInt(dockEndHours) || 
+                        (parseInt(endHours) === parseInt(dockEndHours) && 
+                         parseInt(endMinutes) > parseInt(dockEndMinutes));
+
+      process.stdout.write('Resultado da validação:\n');
+      process.stdout.write(`Antes do horário de início? ${isBeforeStart}\n`);
+      //process.stdout.write(`Depois do horário de fim? ${isAfterEnd}\n\n');
+      
+      if (isBeforeStart || isAfterEnd) {
+        process.stdout.write('=== Horário Inválido ===\n');
+        process.stdout.write(`Motivo: ${isBeforeStart ? 'Antes do início' : 'Depois do fim'}\n\n`);
         return res.status(400).json({ 
           message: 'Requested time is outside dock working hours',
           workingHours: `${dock.workingHoursStart} - ${dock.workingHoursEnd}`
@@ -337,6 +374,13 @@ const checkDockAvailability = async (req, res) => {
       }
       
       // Check for overlapping schedules
+      const startDateTime = new Date(`${date}T${startHours}:${startMinutes}:00`);
+      const endDateTime = new Date(`${date}T${endHours}:${endMinutes}:00`);
+
+      process.stdout.write('=== Verificação de sobreposição ===\n');
+      process.stdout.write(`Data/Hora Início: ${startDateTime.toLocaleString()}\n`);
+      process.stdout.write(`Data/Hora Fim: ${endDateTime.toLocaleString()}\n\n`);
+
       const overlappingSchedules = await DockSchedule.findAll({
         where: {
           dockId: id,
@@ -358,18 +402,21 @@ const checkDockAvailability = async (req, res) => {
       });
       
       if (overlappingSchedules.length > 0) {
+        process.stdout.write('=== Horário com Sobreposição ===\n');
+        process.stdout.write(`Quantidade de conflitos: ${overlappingSchedules.length}\n\n`);
         return res.status(400).json({ 
           message: 'Time slot is not available',
           conflicts: overlappingSchedules
         });
       }
       
+      process.stdout.write('=== Horário Disponível ===\n\n');
       return res.status(200).json({ 
         message: 'Time slot is available',
         available: true
       });
     }
-    
+
     // If duration is provided, find available slots
     if (duration) {
       const durationMinutes = parseInt(duration, 10);
@@ -484,6 +531,60 @@ const checkDockAvailability = async (req, res) => {
   }
 };
 
+// Create dock schedule
+const createDockSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { startTime, endTime, orderId, status } = req.body;
+    
+    process.stdout.write('\n=== Criando Agendamento ===\n');
+    process.stdout.write(`ID da Doca: ${id}\n`);
+    process.stdout.write(`Horário Início: ${startTime}\n`);
+    process.stdout.write(`Horário Fim: ${endTime}\n`);
+    process.stdout.write(`ID do Pedido: ${orderId}\n`);
+    process.stdout.write(`Status: ${status}\n\n`);
+    
+    const dock = await Dock.findByPk(id);
+    
+    if (!dock) {
+      return res.status(404).json({ message: 'Dock not found' });
+    }
+    
+    // Check if user has permission to schedule this dock
+    if (req.user.role !== 'admin' && dock.companyId !== req.user.companyId) {
+      return res.status(403).json({ message: 'Access denied: dock belongs to another company' });
+    }
+    
+    // Check if dock is blocked
+    if (dock.isBlocked) {
+      return res.status(400).json({ 
+        message: 'Dock is blocked for maintenance',
+        reason: dock.blockReason
+      });
+    }
+    
+    // Create schedule
+    const newSchedule = await DockSchedule.create({
+      dockId: id,
+      startTime,
+      endTime,
+      orderId,
+      status
+    });
+    
+    process.stdout.write('=== Agendamento Criado ===\n');
+    process.stdout.write(`ID do Agendamento: ${newSchedule.id}\n\n`);
+    
+    res.status(201).json({
+      message: 'Schedule created successfully',
+      schedule: newSchedule
+    });
+  } catch (error) {
+    console.error('Create dock schedule error:', error);
+    res.status(500).json({ message: 'Error creating schedule', error: error.message });
+  }
+};
+
 // Export all functions
 export {
   getAllDocks,
@@ -492,5 +593,6 @@ export {
   updateDock,
   deleteDock,
   getDockSchedule,
-  checkDockAvailability
+  checkDockAvailability,
+  createDockSchedule
 };

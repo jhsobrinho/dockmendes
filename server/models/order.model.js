@@ -5,6 +5,11 @@ export default (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
+    orderNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Número do pedido para exibição'
+    },
     status: {
       type: DataTypes.ENUM('pending', 'in_progress', 'completed', 'cancelled'),
       defaultValue: 'pending'
@@ -26,8 +31,23 @@ export default (sequelize, DataTypes) => {
     estimatedTime: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 30, // Time in minutes
+      defaultValue: 30,
       comment: 'Estimated time in minutes for loading/unloading'
+    },
+    transportCompany: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Nome da transportadora (pode ser diferente do cliente)'
+    },
+    driverName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Nome do motorista para este pedido'
+    },
+    vehiclePlate: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Placa do veículo para este pedido'
     },
     notes: {
       type: DataTypes.TEXT,
@@ -35,8 +55,16 @@ export default (sequelize, DataTypes) => {
     }
   }, {
     timestamps: true,
-    paranoid: true, // Soft delete
-    tableName: 'orders'
+    paranoid: true,
+    tableName: 'orders',
+    hooks: {
+      beforeCreate: async (order) => {
+        if (!order.orderNumber) {
+          const timestamp = new Date().getTime();
+          order.orderNumber = `ORD-${timestamp}`;
+        }
+      }
+    }
   });
 
   Order.associate = (models) => {
