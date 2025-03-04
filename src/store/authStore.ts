@@ -49,11 +49,11 @@ export const useAuthStore = create<AuthState>()(
           }
           
           // Real API call
-          const response = await authAPI.login(email, password);
+          const { data } = await authAPI.login(email, password);
           
           set({
-            user: response.user,
-            token: response.token,
+            user: data.user,
+            token: data.token,
             isAuthenticated: true,
           });
         } catch (error) {

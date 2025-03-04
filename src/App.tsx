@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import DockManagement from './pages/DockManagement';
 import { CompaniesPage } from './pages/companies/CompaniesPage';
 import UsersPage from './pages/users/UsersPage';
+import ProductsPage from './pages/products/ProductsPage';
 import { useAuthStore } from './store/authStore';
 
 function App() {
@@ -38,6 +39,8 @@ function App() {
         return <CompaniesPage />;
       case 'users':
         return <UsersPage />;
+      case 'products':
+        return <ProductsPage />;
       default:
         return <Dashboard />;
     }

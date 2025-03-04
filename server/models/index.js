@@ -90,56 +90,29 @@ const createAdminUser = async () => {
   }
 };
 
-// Sincronizar o banco de dados
-const syncDatabase = async () => {
+// Sincronizar o banco de dados apenas se necessário
+const initializeDatabase = async () => {
   try {
-    console.log('Iniciando sincronização do banco de dados...');
+    // Tenta conectar ao banco
+    await sequelize.authenticate();
+    console.log('Conexão com o banco de dados estabelecida com sucesso.');
 
-    // Recria o schema e habilita a extensão uuid-ossp
-    await sequelize.query('DROP SCHEMA IF EXISTS public CASCADE;');
-    await sequelize.query('CREATE SCHEMA public;');
-    await sequelize.query('GRANT ALL ON SCHEMA public TO master;');
-    await sequelize.query('GRANT ALL ON SCHEMA public TO public;');
-    await sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-
-    // Aguarda um momento para garantir que o schema foi criado
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Sincroniza os modelos em ordem específica
-    const models = [
-      { model: db.Company, name: 'Company' },
-      { model: db.User, name: 'User' },
-      { model: db.Product, name: 'Product' },
-      { model: db.Client, name: 'Client' },
-      { model: db.Dock, name: 'Dock' },
-      { model: db.Holiday, name: 'Holiday' },
-      { model: db.Order, name: 'Order' },
-      { model: db.OrderItem, name: 'OrderItem' },
-      { model: db.DockSchedule, name: 'DockSchedule' },
-      { model: db.Reservation, name: 'Reservation' }
-    ];
-
-    // Cria as tabelas em ordem
-    for (const { model, name } of models) {
-      console.log(`Sincronizando modelo ${name}...`);
-      await model.sync({ force: true });
-      console.log(`Modelo ${name} sincronizado com sucesso!`);
-    }
+    // Sincroniza os modelos sem forçar recriação
+    await sequelize.sync({ alter: true });
+    console.log('Modelos sincronizados com sucesso.');
     
-    // Cria o usuário admin
+    // Cria o usuário admin se não existir
     await createAdminUser();
-    
-    console.log('Banco de dados sincronizado com sucesso!');
   } catch (error) {
-    console.error('Erro ao sincronizar o banco de dados:', error);
+    console.error('Erro ao inicializar o banco de dados:', error);
     throw error;
   }
 };
 
-// Executar sincronização apenas em desenvolvimento
+// Executar inicialização apenas em desenvolvimento
 if (process.env.NODE_ENV === 'development') {
-  syncDatabase().catch(error => {
-    console.error('Falha na sincronização do banco de dados:', error);
+  initializeDatabase().catch(error => {
+    console.error('Falha na inicialização do banco de dados:', error);
     process.exit(1);
   });
 }
