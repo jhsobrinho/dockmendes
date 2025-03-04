@@ -1,14 +1,27 @@
 import express from 'express';
 import { verifyToken, isAdmin } from '../middleware/auth.middleware.js';
+import {
+  create,
+  findAll,
+  findOne,
+  update,
+  remove,
+  toggleActive
+} from '../controllers/company.controller.js';
 
 const router = express.Router();
 
-// All routes require authentication
+// Todas as rotas requerem autenticação
 router.use(verifyToken);
 
-// Placeholder for company routes
-router.get('/', isAdmin, (req, res) => {
-  res.status(200).json({ message: 'Company routes will be implemented here' });
-});
+// Rotas que requerem privilégios de admin
+router.post('/', isAdmin, create);
+router.put('/:id', isAdmin, update);
+router.delete('/:id', isAdmin, remove);
+router.patch('/:id/toggle-active', isAdmin, toggleActive);
+
+// Rotas públicas (para usuários autenticados)
+router.get('/', findAll);
+router.get('/:id', findOne);
 
 export default router;

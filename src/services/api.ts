@@ -18,18 +18,49 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   };
   
   try {
+    console.log('API Request:', {
+      url: `${API_URL}${endpoint}`,
+      method: options.method,
+      headers,
+      body: options.body
+    });
+
     const response = await fetch(`${API_URL}${endpoint}`, config);
+    console.log('API Response:', {
+      status: response.status,
+      statusText: response.statusText
+    });
+    
     const data = await response.json();
+    console.log('API Data:', data);
     
     if (!response.ok) {
       throw new Error(data.message || 'Something went wrong');
     }
     
-    return data;
+    return { data };
   } catch (error) {
     console.error('API request error:', error);
     throw error;
   }
+};
+
+// API methods
+const api = {
+  get: (endpoint: string) => apiRequest(endpoint, { method: 'GET' }),
+  post: (endpoint: string, data: any) => apiRequest(endpoint, { 
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  put: (endpoint: string, data: any) => apiRequest(endpoint, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  patch: (endpoint: string, data: any = {}) => apiRequest(endpoint, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  }),
+  delete: (endpoint: string) => apiRequest(endpoint, { method: 'DELETE' })
 };
 
 // Auth API
@@ -141,9 +172,4 @@ export const dockAPI = {
   }
 };
 
-// Export other APIs as needed
-export default {
-  auth: authAPI,
-  users: userAPI,
-  docks: dockAPI
-};
+export default api;

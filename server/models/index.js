@@ -36,19 +36,9 @@ const sequelize = new Sequelize(
       acquire: 30000,
       idle: 10000
     },
-    retry: {
-      match: [
-        /SequelizeConnectionError/,
-        /SequelizeConnectionRefusedError/,
-        /SequelizeHostNotFoundError/,
-        /SequelizeHostNotReachableError/,
-        /SequelizeInvalidConnectionError/,
-        /SequelizeConnectionTimedOutError/
-      ],
-      max: 3
-    },
-    dialectOptions: {
-      connectTimeout: 10000
+    define: {
+      freezeTableName: true,
+      schema: 'public'
     }
   }
 );
@@ -76,13 +66,6 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
-// Test connection and log configuration
-console.log('Tentando conectar ao banco de dados com as seguintes configurações:');
-console.log(`Host: ${process.env.DB_HOST}`);
-console.log(`Porta: ${process.env.DB_PORT}`);
-console.log(`Banco: ${process.env.DB_NAME}`);
-console.log(`Usuário: ${process.env.DB_USER}`);
-
 // Criar usuário admin se não existir
 const createAdminUser = async () => {
   try {
@@ -101,17 +84,64 @@ const createAdminUser = async () => {
       });
       
       console.log('Usuário admin criado com sucesso!');
-      console.log('Email: admin@admin.com');
-      console.log('Senha: admin123');
     }
   } catch (error) {
     console.error('Erro ao criar usuário admin:', error);
   }
 };
 
-// Executar criação do admin após sincronizar o banco
-sequelize.sync({ alter: process.env.NODE_ENV === 'development' })
-  .then(() => createAdminUser())
-  .catch(error => console.error('Erro na sincronização:', error));
+// Sincronizar o banco de dados
+const syncDatabase = async () => {
+  try {
+    console.log('Iniciando sincronização do banco de dados...');
+
+    // Recria o schema e habilita a extensão uuid-ossp
+    await sequelize.query('DROP SCHEMA IF EXISTS public CASCADE;');
+    await sequelize.query('CREATE SCHEMA public;');
+    await sequelize.query('GRANT ALL ON SCHEMA public TO master;');
+    await sequelize.query('GRANT ALL ON SCHEMA public TO public;');
+    await sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+
+    // Aguarda um momento para garantir que o schema foi criado
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Sincroniza os modelos em ordem específica
+    const models = [
+      { model: db.Company, name: 'Company' },
+      { model: db.User, name: 'User' },
+      { model: db.Product, name: 'Product' },
+      { model: db.Client, name: 'Client' },
+      { model: db.Dock, name: 'Dock' },
+      { model: db.Holiday, name: 'Holiday' },
+      { model: db.Order, name: 'Order' },
+      { model: db.OrderItem, name: 'OrderItem' },
+      { model: db.DockSchedule, name: 'DockSchedule' },
+      { model: db.Reservation, name: 'Reservation' }
+    ];
+
+    // Cria as tabelas em ordem
+    for (const { model, name } of models) {
+      console.log(`Sincronizando modelo ${name}...`);
+      await model.sync({ force: true });
+      console.log(`Modelo ${name} sincronizado com sucesso!`);
+    }
+    
+    // Cria o usuário admin
+    await createAdminUser();
+    
+    console.log('Banco de dados sincronizado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao sincronizar o banco de dados:', error);
+    throw error;
+  }
+};
+
+// Executar sincronização apenas em desenvolvimento
+if (process.env.NODE_ENV === 'development') {
+  syncDatabase().catch(error => {
+    console.error('Falha na sincronização do banco de dados:', error);
+    process.exit(1);
+  });
+}
 
 export default db;

@@ -56,6 +56,10 @@ export default (sequelize, DataTypes) => {
     active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
+    },
+    companyId: {
+      type: DataTypes.UUID,
+      allowNull: true
     }
   }, {
     timestamps: true,
@@ -66,7 +70,9 @@ export default (sequelize, DataTypes) => {
   Client.associate = (models) => {
     Client.belongsTo(models.Company, {
       foreignKey: 'companyId',
-      as: 'company'
+      as: 'company',
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
     });
     
     Client.hasMany(models.Order, {
