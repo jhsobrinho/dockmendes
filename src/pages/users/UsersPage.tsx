@@ -5,8 +5,9 @@ import { UserList } from '../../components/users/UserList';
 import { UserForm } from '../../components/users/UserForm';
 import { useUserStore } from '../../store/userStore';
 import { UserCreate, UserUpdate } from '../../types';
+import Modal from '../../components/shared/Modal';
 
-export const UsersPage: React.FC = () => {
+const UsersPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { selectedUser, createUser, updateUser, setSelectedUser } = useUserStore();
 
@@ -47,23 +48,22 @@ export const UsersPage: React.FC = () => {
           </button>
         </div>
 
-        {isFormOpen || selectedUser ? (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-xl font-semibold mb-4">
-                {selectedUser ? 'Editar Usuário' : 'Novo Usuário'}
-              </h2>
-              <UserForm
-                user={selectedUser}
-                onSubmit={handleSubmit}
-                onCancel={handleCloseForm}
-              />
-            </div>
-          </div>
-        ) : (
-          <UserList />
-        )}
+        <UserList />
+
+        <Modal
+          isOpen={isFormOpen || selectedUser !== null}
+          onClose={handleCloseForm}
+          title={selectedUser ? 'Editar Usuário' : 'Novo Usuário'}
+        >
+          <UserForm
+            user={selectedUser}
+            onSubmit={handleSubmit}
+            onCancel={handleCloseForm}
+          />
+        </Modal>
       </div>
     </Layout>
   );
 };
+
+export default UsersPage;

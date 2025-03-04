@@ -1,4 +1,4 @@
-// User types
+// User Types
 export interface User {
   id: string;
   name: string;
@@ -47,7 +47,7 @@ export interface UserPaginatedResponse {
   currentPage: number;
 }
 
-// Company types
+// Company Types
 export interface Company {
   id: string;
   name: string;
@@ -91,17 +91,53 @@ export interface CompanyPaginatedResponse {
   currentPage: number;
 }
 
-// Product types
+// Product Types
 export interface Product {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   stock: number;
-  loadingTime: number; // Time in minutes to load/unload this product
-  companyId: string;
+  loadingTime: number;
+  active: boolean;
+  companyId?: string;
+  company?: Company;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ProductCreate {
+  name: string;
+  description?: string;
+  price: number;
+  stock: number;
+  loadingTime?: number;
+  companyId?: string;
+  active?: boolean;
+}
+
+export interface ProductUpdate {
+  name?: string;
+  description?: string;
+  price?: number;
+  stock?: number;
+  loadingTime?: number;
+  active?: boolean;
+}
+
+export interface ProductFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  companyId?: string;
+  active?: boolean;
+}
+
+export interface ProductPaginatedResponse {
+  products: Product[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 // Client types
