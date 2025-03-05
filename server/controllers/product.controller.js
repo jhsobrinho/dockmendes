@@ -1,4 +1,4 @@
-import db from '../models/index.js';
+import { db } from '../models/index.js';
 import { Op } from 'sequelize';
 
 const { Product, Company } = db;
@@ -215,3 +215,4 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ message: 'Erro ao excluir produto', error: error.message });
   }
 };
+

@@ -1,7 +1,7 @@
-import db from '../models/index.js';
+import { models } from '../models/index.js';
 import { Op } from 'sequelize';
 
-const Client = db.Client;
+const Client = models.Client;
 
 // Get all clients with pagination and filters
 export const getAllClients = async (req, res) => {
@@ -34,7 +34,7 @@ export const getAllClients = async (req, res) => {
       offset: parseInt(offset),
       order: [['createdAt', 'DESC']],
       include: [{
-        model: db.Company,
+        model: models.Company,
         as: 'company',
         attributes: ['id', 'name']
       }]
@@ -55,7 +55,7 @@ export const getClientById = async (req, res) => {
   try {
     const client = await Client.findByPk(req.params.id, {
       include: [{
-        model: db.Company,
+        model: models.Company,
         as: 'company',
         attributes: ['id', 'name']
       }]
@@ -133,3 +133,4 @@ export const toggleClientStatus = async (req, res) => {
     res.status(500).json({ message: 'Erro ao alterar status do cliente' });
   }
 };
+

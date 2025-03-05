@@ -5,7 +5,13 @@
     "database": "dockstation",
     "host": "app.voipsimples.com.br",
     "port": 5432,
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "schema": "public",
+    "define": {
+      "timestamps": true,
+      "paranoid": true,
+      "schema": "public"
+    }
   },
   "test": {
     "username": "master",
@@ -13,7 +19,13 @@
     "database": "dockstation_test",
     "host": "app.voipsimples.com.br",
     "port": 5432,
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "schema": "public",
+    "define": {
+      "timestamps": true,
+      "paranoid": true,
+      "schema": "public"
+    }
   },
   "production": {
     "username": "master",
@@ -21,6 +33,12 @@
     "database": "dockstation",
     "host": "app.voipsimples.com.br",
     "port": 5432,
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "schema": "public",
+    "define": {
+      "timestamps": true,
+      "paranoid": true,
+      "schema": "public"
+    }
   }
 }

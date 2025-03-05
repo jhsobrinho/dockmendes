@@ -38,7 +38,9 @@ const sequelize = new Sequelize(
     },
     define: {
       freezeTableName: true,
-      schema: 'public'
+      schema: 'public',
+      timestamps: true,
+      paranoid: true
     }
   }
 );
@@ -91,28 +93,52 @@ const createAdminUser = async () => {
 };
 
 // Sincronizar o banco de dados apenas se necessário
-const initializeDatabase = async () => {
+export async function initializeDatabase() {
   try {
     // Tenta conectar ao banco
     await sequelize.authenticate();
     console.log('Conexão com o banco de dados estabelecida com sucesso.');
 
-    // Sincroniza os modelos apenas se DB_SYNC=true
-    if (process.env.DB_SYNC === 'true') {
-      console.log('Iniciando sincronização do banco de dados...');
-      await sequelize.sync({ alter: true });
-      console.log('Modelos sincronizados com sucesso.');
-      
-      // Cria o usuário admin se não existir
-      await createAdminUser();
-    } else {
-      console.log('Sincronização do banco de dados desabilitada. Para habilitar, defina DB_SYNC=true no arquivo .env');
-    }
+    console.log('Iniciando sincronização do banco de dados...');
+
+    // Drop tipos enum existentes
+    await sequelize.query(`
+      DO $$
+      BEGIN
+        DROP TYPE IF EXISTS "enum_users_role" CASCADE;
+        DROP TYPE IF EXISTS "enum_orders_status" CASCADE;
+      EXCEPTION
+        WHEN others THEN null;
+      END $$;
+    `);
+
+    // Criar tipos enum
+    await sequelize.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_users_role') THEN
+          CREATE TYPE "enum_users_role" AS ENUM ('admin', 'manager', 'operator');
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_orders_status') THEN
+          CREATE TYPE "enum_orders_status" AS ENUM ('pending', 'in_progress', 'completed', 'cancelled');
+        END IF;
+      END
+      $$;
+    `);
+    
+    // Força a recriação de todas as tabelas
+    await sequelize.sync({ force: true });
+    
+    console.log('Banco de dados sincronizado com sucesso.');
+    
+    // Cria o usuário admin se não existir
+    await createAdminUser();
   } catch (error) {
     console.error('Erro ao inicializar o banco de dados:', error);
     throw error;
   }
-};
+}
 
 // Executar inicialização apenas em desenvolvimento
 if (process.env.NODE_ENV === 'development') {
